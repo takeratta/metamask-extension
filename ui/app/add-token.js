@@ -45,6 +45,7 @@ function mapDispatchToProps (dispatch) {
 
 inherits(AddTokenScreen, Component)
 function AddTokenScreen () {
+  console.log('helloconsole - m')
   this.state = {
     isShowingConfirmation: false,
     customAddress: '',
@@ -57,16 +58,21 @@ function AddTokenScreen () {
   }
   this.tokenAddressDidChange = this.tokenAddressDidChange.bind(this)
   this.onNext = this.onNext.bind(this)
+  console.log('helloconsole - n')
   Component.call(this)
+  console.log('helloconsole - o')
 }
 
 AddTokenScreen.prototype.componentWillMount = function () {
+  console.log('helloconsole - p')
   this.tokenInfoGetter = tokenInfoGetter()
+  console.log('helloconsole - q')
 }
 
 AddTokenScreen.prototype.toggleToken = function (address, token) {
   const { selectedTokens, errors } = this.state
   const { [address]: selectedToken } = selectedTokens
+  console.log('helloconsole - r')
   this.setState({
     selectedTokens: {
       ...selectedTokens,
@@ -77,80 +83,101 @@ AddTokenScreen.prototype.toggleToken = function (address, token) {
       tokenSelector: null,
     },
   })
+  console.log('helloconsole - s')
 }
 
 AddTokenScreen.prototype.onNext = function () {
   const { isValid, errors } = this.validate()
-
+  console.log('helloconsole - t')
   return !isValid
     ? this.setState({ errors })
     : this.setState({ isShowingConfirmation: true })
 }
 
 AddTokenScreen.prototype.tokenAddressDidChange = function (e) {
+  console.log('helloconsole - u')
   const customAddress = e.target.value.trim()
+  console.log('helloconsole - v')
   this.setState({ customAddress })
+  console.log('helloconsole - w')
   if (ethUtil.isValidAddress(customAddress) && customAddress !== emptyAddr) {
+    console.log('helloconsole - x')
     this.attemptToAutoFillTokenParams(customAddress)
+    console.log('helloconsole - y')
   } else {
+    console.log('helloconsole - z')
     this.setState({
       customSymbol: '',
       customDecimals: 0,
     })
+    console.log('helloconsole - aa')
   }
 }
 
 AddTokenScreen.prototype.checkExistingAddresses = function (address) {
+  console.log('helloconsole - ab')
   if (!address) return false
+  console.log('helloconsole - ac')
   const tokensList = this.props.tokens
+  console.log('helloconsole - ad')
   const matchesAddress = existingToken => {
     return existingToken.address.toLowerCase() === address.toLowerCase()
   }
+  console.log('helloconsole - ae')
 
   return R.any(matchesAddress)(tokensList)
 }
 
 AddTokenScreen.prototype.validate = function () {
   const errors = {}
+  console.log('helloconsole - af')
   const identitiesList = Object.keys(this.props.identities)
   const { customAddress, customSymbol, customDecimals, selectedTokens } = this.state
   const standardAddress = ethUtil.addHexPrefix(customAddress).toLowerCase()
+  console.log('helloconsole - ag')
 
   if (customAddress) {
+    console.log('helloconsole - ah')
     const validAddress = ethUtil.isValidAddress(customAddress)
     if (!validAddress) {
       errors.customAddress = 'Address is invalid. '
     }
+    console.log('helloconsole - ai')
 
     const validDecimals = customDecimals >= 0 && customDecimals < 36
     if (!validDecimals) {
       errors.customDecimals = 'Decimals must be at least 0, and not over 36.'
     }
+    console.log('helloconsole - aj')
 
     const symbolLen = customSymbol.trim().length
     const validSymbol = symbolLen > 0 && symbolLen < 10
     if (!validSymbol) {
       errors.customSymbol = 'Symbol must be between 0 and 10 characters.'
     }
+    console.log('helloconsole - ak')
 
     const ownAddress = identitiesList.includes(standardAddress)
     if (ownAddress) {
       errors.customAddress = 'Personal address detected. Input the token contract address.'
     }
+    console.log('helloconsole - al')
 
     const tokenAlreadyAdded = this.checkExistingAddresses(customAddress)
     if (tokenAlreadyAdded) {
       errors.customAddress = 'Token has already been added.'
     }
+    console.log('helloconsole - am')
   } else if (
     Object.entries(selectedTokens)
       .reduce((isEmpty, [ symbol, isSelected ]) => (
         isEmpty && !isSelected
       ), true)
   ) {
+    console.log('helloconsole - an')
     errors.tokenSelector = 'Must select at least 1 token.'
   }
-
+  console.log('helloconsole - ao')
   return {
     isValid: !Object.keys(errors).length,
     errors,
@@ -158,17 +185,22 @@ AddTokenScreen.prototype.validate = function () {
 }
 
 AddTokenScreen.prototype.attemptToAutoFillTokenParams = async function (address) {
+  console.log('helloconsole - ap')
   const { symbol, decimals } = await this.tokenInfoGetter(address)
+  console.log('helloconsole - aq')
   if (symbol && decimals) {
+    console.log('helloconsole - ar')
     this.setState({
       customSymbol: symbol,
       customDecimals: decimals.toString(),
     })
   }
+  console.log('helloconsole - as')
 }
 
 AddTokenScreen.prototype.renderCustomForm = function () {
   const { customAddress, customSymbol, customDecimals, errors } = this.state
+  console.log('helloconsole - at')
 
   return !this.state.isCollapsed && (
     h('div.add-token__add-custom-form', [
@@ -216,15 +248,20 @@ AddTokenScreen.prototype.renderCustomForm = function () {
 }
 
 AddTokenScreen.prototype.renderTokenList = function () {
+  console.log('helloconsole - au')
   const { searchQuery = '', selectedTokens } = this.state
   const results = searchQuery
     ? fuse.search(searchQuery) || []
     : contractList
+  console.log('helloconsole - av')
+  console.log('helloconsole - renderTokenList results', results)
 
   return Array(6).fill(undefined)
     .map((_, i) => {
       const { logo, symbol, name, address } = results[i] || {}
       const tokenAlreadyAdded = this.checkExistingAddresses(address)
+      console.log('helloconsole - aw')
+      console.log(`url(images/contract/${logo})`, Boolean(logo || symbol || name))
       return Boolean(logo || symbol || name) && (
         h('div.add-token__token-wrapper', {
           className: classnames({
@@ -251,6 +288,7 @@ AddTokenScreen.prototype.renderTokenList = function () {
 }
 
 AddTokenScreen.prototype.renderConfirmation = function () {
+  console.log('helloconsole - ax')
   const {
     customAddress: address,
     customSymbol: symbol,
@@ -269,6 +307,8 @@ AddTokenScreen.prototype.renderConfirmation = function () {
   const tokens = address && symbol && decimals
     ? { ...selectedTokens, [address]: customToken }
     : selectedTokens
+
+    console.log('helloconsole - ay')
 
   return (
     h('div.add-token', [
@@ -307,8 +347,11 @@ AddTokenScreen.prototype.renderConfirmation = function () {
 }
 
 AddTokenScreen.prototype.render = function () {
+  console.log('helloconsole - az')
   const { isCollapsed, errors, isShowingConfirmation } = this.state
   const { goHome } = this.props
+
+  console.log('helloconsole - ba')
 
   return isShowingConfirmation
     ? this.renderConfirmation()
